@@ -9,7 +9,7 @@ module BulkInsert
     attr_accessor :adapter_name
     attr_reader :ignore, :update_duplicates, :result_sets
 
-    def initialize(connection, table_name, primary_key, column_names, set_size=500, ignore=false, update_duplicates=false, return_primary_keys=false)
+    def initialize(connection, table_name, primary_key, column_names, set_size=500, ignore=false, update_duplicates=false, return_primary_keys=false, update_columns=nil)
       @statement_adapter = StatementAdapters.adapter_for(connection)
 
       @connection = connection
@@ -28,6 +28,7 @@ module BulkInsert
       @columns = column_names.map { |name| column_map[name.to_s] }
       @table_name = connection.quote_table_name(table_name)
       @column_names = column_names.map { |name| connection.quote_column_name(name) }.join(",")
+      @update_columns = update_columns.is_a?(Array) ? update_columns.map { |name| column_map[name.to_s] } : @columns
 
       @before_save_callback = nil
       @after_save_callback = nil
@@ -134,7 +135,7 @@ module BulkInsert
 
       if !rows.empty?
         sql << rows.join(",")
-        sql << @statement_adapter.on_conflict_statement(@columns, ignore, update_duplicates)
+        sql << @statement_adapter.on_conflict_statement(@update_columns, ignore, update_duplicates)
         sql << @statement_adapter.primary_key_return_statement(@primary_key) if @return_primary_keys
         sql
       else
