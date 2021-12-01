@@ -11,7 +11,7 @@ module BulkInsert
         if ignore
           ' ON CONFLICT DO NOTHING'
         elsif update_duplicates
-          update_values = columns.map do |column|
+          update_values = columns.reject{ |c| c.name == 'created_at' }.map do |column|
             "#{column.name}=EXCLUDED.#{column.name}"
           end.join(', ')
           ' ON CONFLICT(' + update_duplicates.join(', ') + ') DO UPDATE SET ' + update_values

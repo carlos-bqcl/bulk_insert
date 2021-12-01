@@ -10,7 +10,7 @@ module BulkInsert
       def on_conflict_statement(columns, _ignore, update_duplicates)
         return '' unless update_duplicates
 
-        update_values = columns.map do |column|
+        update_values = columns.reject{ |c| c.name == 'created_at' }.map do |column|
           "`#{column.name}`=VALUES(`#{column.name}`)"
         end.join(', ')
         ' ON DUPLICATE KEY UPDATE ' + update_values
